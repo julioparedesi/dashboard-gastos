@@ -47,13 +47,24 @@ nav::-webkit-scrollbar{display:none;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 
 /* DASH GRID */
-.dash-grid{display:grid;grid-template-columns:1fr;gap:14px;max-width:1440px;margin:0 auto;}
+.dash-grid{display:grid;grid-template-columns:1fr;gap:16px;max-width:1440px;margin:0 auto;}
 @media(min-width:960px){
-  .dash-grid{grid-template-columns:360px 1fr;align-items:start;}
-  .col-l,.col-r{display:flex;flex-direction:column;gap:14px;}
-  /* pay card ocupa el espacio restante para alinearse con la col derecha */
+  .dash-grid{grid-template-columns:360px 1fr;gap:20px;align-items:start;}
+  .col-l,.col-r{display:flex;flex-direction:column;gap:16px;}
   .col-l .pay-card-stretch{flex:1;display:flex;flex-direction:column;}
   .col-l .pay-card-stretch .pay-list{flex:1;}
+}
+/* Mobile: reorder cards visually */
+@media(max-width:959px){
+  .dash-grid{display:flex;flex-direction:column;gap:12px;}
+  .col-l{display:contents;} /* dissolve col-l so children flow into flex parent */
+  .col-r{display:contents;}
+  /* order: kpi(1) mini(2) → evo chart(3) → cat table(4) → pay(5) */
+  .kpi-card      {order:1;}
+  .mini-card     {order:2;}
+  .evo-card      {order:3;}
+  .cat-card      {order:4;}
+  .pay-card-stretch{order:5;}
 }
 
 /* CARD */
