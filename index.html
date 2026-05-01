@@ -43,7 +43,7 @@ nav::-webkit-scrollbar{display:none;}
 /* VIEWS */
 .view{display:none;padding:18px;}
 .view.active{display:block;animation:fadeUp .3s ease;}
-@media(max-width:640px){.view{padding:12px;}}
+@media(max-width:640px){.view{padding:12px;}.dash-grid{gap:10px;}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 
 /* DASH GRID */
@@ -51,8 +51,9 @@ nav::-webkit-scrollbar{display:none;}
 @media(min-width:960px){
   .dash-grid{grid-template-columns:360px 1fr;align-items:start;}
   .col-l,.col-r{display:flex;flex-direction:column;gap:14px;}
-  /* mini-card ocupa el espacio restante para que col-l quede alineada */
-  .col-l .mini-card{flex:1;}
+  /* pay card ocupa el espacio restante para alinearse con la col derecha */
+  .col-l .pay-card-stretch{flex:1;display:flex;flex-direction:column;}
+  .col-l .pay-card-stretch .pay-list{flex:1;}
 }
 
 /* CARD */
@@ -116,9 +117,8 @@ nav::-webkit-scrollbar{display:none;}
 
 /* CHART */
 .chart-wrap{position:relative;height:230px;}
-/* prevent labels bleeding outside card on mobile */
 .chart-card-wrap{overflow:hidden;border-radius:var(--r);}
-@media(max-width:640px){.chart-wrap{height:200px;}}
+@media(max-width:640px){.chart-wrap{height:190px;}}
 
 /* CAT TABLE */
 .cat-reset-btn{font-size:11px;font-weight:700;color:var(--danger);background:rgba(239,68,68,.08);border:none;border-radius:99px;padding:4px 10px;cursor:pointer;display:none;align-items:center;gap:4px;}
@@ -315,7 +315,7 @@ nav::-webkit-scrollbar{display:none;}
         <div class="mini-sub" id="mini-rest-sub">respecto al presupuesto</div>
       </div>
 
-      <div class="card">
+      <div class="card pay-card-stretch">
         <div class="card-hd"><div class="card-ttl">Método de pago</div></div>
         <div class="pay-list" id="pay-list"></div>
       </div>
@@ -434,7 +434,26 @@ nav::-webkit-scrollbar{display:none;}
       <div class="visa-stat"><div class="visa-stat-lbl">Acumulado año</div><div class="visa-stat-val" id="visa-ytd">S/ 0</div></div>
     </div>
     <div class="visa-txn-card">
-      <div class="card-hd"><div class="card-ttl">Movimientos TC VISA del mes</div></div>
+      <div class="card-hd">
+        <div class="card-ttl">Movimientos TC VISA del mes</div>
+        <div class="txn-kpi highlight" id="visa-sel-card" style="padding:6px 12px;border-radius:var(--r-sm);">
+          <div class="txn-kpi-lbl" style="margin-bottom:2px">Seleccionados</div>
+          <div class="txn-kpi-val" id="visa-sel-amt" style="font-size:15px">S/ 0</div>
+        </div>
+      </div>
+      <!-- Date filters -->
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+        <input type="date" class="f-inp" id="visa-from" placeholder="Desde" style="flex:1;min-width:130px;">
+        <input type="date" class="f-inp" id="visa-to" placeholder="Hasta" style="flex:1;min-width:130px;">
+        <button class="btn-clr" onclick="clearVisaFilters()" style="font-size:12px;padding:8px 12px;">✕ Limpiar</button>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px;flex-wrap:wrap;">
+        <div class="txn-count" id="visa-count" style="margin-bottom:0">0 movimientos</div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn-clr" id="visa-btn-sel-all" onclick="visaSelectAll()" style="font-size:12px;padding:5px 12px;">☑ Seleccionar todo</button>
+          <button class="btn-clr" id="visa-btn-desel-all" onclick="visaDeselectAll()" style="font-size:12px;padding:5px 12px;display:none;">☐ Deseleccionar todo</button>
+        </div>
+      </div>
       <div id="visa-txn-list"></div>
     </div>
   </div>
@@ -470,7 +489,9 @@ let allGastos=[],allBudget=[];
 let selectedMonth='',activeFilter=null; // activeFilter: {type:'cat'|'pay', value:string}
 let debtTab='pending';
 let lineChart=null;
-let selectedTxnIds=new Set(); // for ctrl+click selection
+let selectedTxnIds=new Set(); // for txn selection
+let selectedVisaIds=new Set(); // for visa selection
+let currentVisaTxns=[];
 
 // ══════════════════════════════════════════════
 //  FETCH
@@ -631,15 +652,23 @@ function renderLine(){
     }]},
     options:{
       responsive:true,maintainAspectRatio:false,
-      layout:{padding:{top:32,right:36,left:36,bottom:4}}, // extra lateral so labels don't clip
+      layout:{padding:{top:32,right:40,left:40,bottom:4}},
       plugins:{
         legend:{display:false},
         tooltip:{backgroundColor:'#1a1d23',titleColor:'#fff',bodyColor:'#9ca3af',padding:10,callbacks:{label:c=>' '+fmt(c.parsed.y)}},
         datalabels:{
           align:'top',anchor:'end',offset:2,clip:false,
           color:ctx2=>{const v=ctx2.dataset.data[ctx2.dataIndex];return v===maxVal?'#ef4444':v===minVal?'#22c55e':'#9ca3af';},
-          font:{family:"'Plus Jakarta Sans',sans-serif",size:10,weight:'700'},
-          // Cifra completa sin decimales ni abreviación
+          font:ctx2=>{
+            const isMobile=window.innerWidth<640;
+            return {family:"'Plus Jakarta Sans',sans-serif",size:isMobile?9:10,weight:'700'};
+          },
+          // On mobile show only min/max labels to avoid overlap
+          display:ctx2=>{
+            if(window.innerWidth>=640) return ctx2.dataset.data[ctx2.dataIndex]!==0;
+            const v=ctx2.dataset.data[ctx2.dataIndex];
+            return v===maxVal||v===minVal;
+          },
           formatter:v=>{
             if(v===0)return '';
             return 'S/'+Math.round(v).toLocaleString('es-PE');
@@ -647,7 +676,16 @@ function renderLine(){
         }
       },
       scales:{
-        x:{grid:{display:false},ticks:{font:{family:"'Plus Jakarta Sans',sans-serif",size:11},color:'#9ca3af'}},
+        x:{
+          grid:{display:false},
+          ticks:{
+            font:{family:"'Plus Jakarta Sans',sans-serif",size:10},
+            color:'#9ca3af',
+            // On mobile show every other label to avoid overlap
+            callback:(val,idx)=>window.innerWidth<640&&idx%2!==0?'':labels[idx],
+            maxRotation:0,
+          }
+        },
         y:{display:false}
       }
     }
@@ -957,8 +995,18 @@ function renderDeudas(){
 // ══════════════════════════════════════════════
 //  VISA
 // ══════════════════════════════════════════════
+function clearVisaFilters(){
+  document.getElementById('visa-from').value='';
+  document.getElementById('visa-to').value='';
+  renderVisa();
+}
 function renderVisa(){
-  const gastos=allGastos.filter(r=>r._yyyymm===selectedMonth&&(r.metodo_pago||'').trim()===VISA_NAME);
+  const from=document.getElementById('visa-from')?.value;
+  const to=document.getElementById('visa-to')?.value;
+  let gastos=allGastos.filter(r=>r._yyyymm===selectedMonth&&(r.metodo_pago||'').trim()===VISA_NAME);
+  if(from) gastos=gastos.filter(r=>r._date>=new Date(from));
+  if(to)   gastos=gastos.filter(r=>r._date<=new Date(to+'T23:59:59'));
+
   const total=gastos.reduce((s,r)=>s+(parseFloat(r.monto)||0),0);
   document.getElementById('visa-total').textContent=fmt(total);
   document.getElementById('visa-sub').textContent=`${gastos.length} transacción${gastos.length!==1?'es':''} en ${fmtMFull(selectedMonth)}`;
@@ -972,14 +1020,24 @@ function renderVisa(){
   const year=selectedMonth.slice(0,4);
   const ytd=allGastos.filter(r=>r._yyyymm.startsWith(year)&&(r.metodo_pago||'').trim()===VISA_NAME).reduce((s,r)=>s+(parseFloat(r.monto)||0),0);
   document.getElementById('visa-ytd').textContent=fmt(ytd);
+
   const sorted=[...gastos].sort((a,b)=>b._date-a._date);
+  currentVisaTxns=sorted;
+  // Remove deselected
+  selectedVisaIds=new Set([...selectedVisaIds].filter(id=>sorted.some(r=>r._id===id)));
+  updateVisaSelKpi();
+  visaUpdateSelAllBtn();
+
+  document.getElementById('visa-count').textContent=`${sorted.length} movimiento${sorted.length!==1?'s':''}`;
   const el=document.getElementById('visa-txn-list');
   if(!sorted.length){el.innerHTML='<div class="empty"><span class="ei">💳</span>Sin movimientos VISA este mes</div>';return;}
   el.innerHTML=sorted.map(r=>{
     const m=catMeta(r.categoria);
     const date=r._date?r._date.toLocaleDateString('es-PE',{day:'2-digit',month:'short',year:'numeric'}):'';
+    const isSel=selectedVisaIds.has(r._id);
     return `
-      <div class="txn-item" style="cursor:default">
+      <div class="txn-item${isSel?' selected':''}" data-visa-id="${r._id}">
+        <div class="txn-check" onclick="toggleVisaSel(${r._id})"><div class="txn-check-inner"></div></div>
         <div class="txn-ic" style="background:${m.bg}">${m.i}</div>
         <div class="txn-body">
           <div class="txn-det">${r.detalle||r.comentario||'—'}</div>
@@ -992,6 +1050,34 @@ function renderVisa(){
       </div>`;
   }).join('');
 }
+function toggleVisaSel(id){
+  if(selectedVisaIds.has(id)) selectedVisaIds.delete(id);
+  else selectedVisaIds.add(id);
+  const el=document.querySelector(`.txn-item[data-visa-id="${id}"]`);
+  if(el){el.classList.toggle('selected',selectedVisaIds.has(id));const inner=el.querySelector('.txn-check-inner');if(inner)inner.style.opacity=selectedVisaIds.has(id)?'1':'0';}
+  updateVisaSelKpi();visaUpdateSelAllBtn();
+}
+function updateVisaSelKpi(){
+  const sel=currentVisaTxns.filter(r=>selectedVisaIds.has(r._id));
+  const total=sel.reduce((s,r)=>s+(parseFloat(r.monto)||0),0);
+  document.getElementById('visa-sel-amt').textContent=selectedVisaIds.size>0?fmt(total):'S/ 0';
+}
+function visaSelectAll(){
+  currentVisaTxns.forEach(r=>selectedVisaIds.add(r._id));
+  document.querySelectorAll('.txn-item[data-visa-id]').forEach(el=>{el.classList.add('selected');const i=el.querySelector('.txn-check-inner');if(i)i.style.opacity='1';});
+  updateVisaSelKpi();visaUpdateSelAllBtn();
+}
+function visaDeselectAll(){
+  selectedVisaIds.clear();
+  document.querySelectorAll('.txn-item[data-visa-id]').forEach(el=>{el.classList.remove('selected');const i=el.querySelector('.txn-check-inner');if(i)i.style.opacity='0';});
+  updateVisaSelKpi();visaUpdateSelAllBtn();
+}
+function visaUpdateSelAllBtn(){
+  const allSel=currentVisaTxns.length>0&&currentVisaTxns.every(r=>selectedVisaIds.has(r._id));
+  const bs=document.getElementById('visa-btn-sel-all'),bd=document.getElementById('visa-btn-desel-all');
+  if(bs)bs.style.display=allSel?'none':'';
+  if(bd)bd.style.display=allSel?'':'none';
+}
 
 // ══════════════════════════════════════════════
 //  NAV
@@ -1002,6 +1088,13 @@ function switchView(v){
   document.getElementById('view-'+v).classList.add('active');
   document.querySelectorAll('.nav-tab')[{dash:0,txn:1,deudas:2,visa:3}[v]].classList.add('active');
   if(v==='txn') renderTxnView();
+  if(v==='visa'){
+    renderVisa();
+    ['visa-from','visa-to'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el&&!el.dataset.wired){el.addEventListener('change',renderVisa);el.dataset.wired='1';}
+    });
+  }
 }
 
 init();
