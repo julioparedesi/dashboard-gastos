@@ -3,7 +3,34 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Finanzas</title>
+<title>Gastos360°</title>
+<link rel="icon" id="favicon" type="image/png" href="https://res.cloudinary.com/did2jvgfv/image/upload/v1777661716/image_ygjaa5.png">
+<link rel="apple-touch-icon" href="https://res.cloudinary.com/did2jvgfv/image/upload/v1777661716/image_ygjaa5.png">
+<meta name="apple-mobile-web-app-title" content="Gastos360°">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<script>
+// Generate rounded favicon via canvas at runtime
+(function(){
+  const img=new Image();
+  img.crossOrigin='anonymous';
+  img.onload=function(){
+    const c=document.createElement('canvas');
+    c.width=c.height=64;
+    const cx=c.getContext('2d');
+    const r=14; // corner radius
+    cx.beginPath();
+    cx.moveTo(r,0);cx.lineTo(64-r,0);cx.quadraticCurveTo(64,0,64,r);
+    cx.lineTo(64,64-r);cx.quadraticCurveTo(64,64,64-r,64);
+    cx.lineTo(r,64);cx.quadraticCurveTo(0,64,0,64-r);
+    cx.lineTo(0,r);cx.quadraticCurveTo(0,0,r,0);
+    cx.closePath();cx.clip();
+    cx.drawImage(img,0,0,64,64);
+    document.getElementById('favicon').href=c.toDataURL('image/png');
+  };
+  img.src='https://res.cloudinary.com/did2jvgfv/image/upload/v1777661716/image_ygjaa5.png';
+})();
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
@@ -43,19 +70,31 @@ nav::-webkit-scrollbar{display:none;}
 /* VIEWS */
 .view{display:none;padding:18px;}
 .view.active{display:block;animation:fadeUp .3s ease;}
+/* On desktop, dash view should not scroll - content is viewport-locked */
+@media(min-width:960px){#view-dash.active{overflow:hidden;padding:18px;height:calc(100vh - 58px);}}
 @media(max-width:640px){.view{padding:10px;}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 
 /* DASH GRID */
 .dash-grid{display:grid;grid-template-columns:1fr;gap:16px;max-width:1440px;margin:0 auto;}
 @media(min-width:960px){
-  .dash-grid{grid-template-columns:360px 1fr;gap:20px;}
-  .col-l{display:flex;flex-direction:column;gap:16px;}
-  .col-r{display:flex;flex-direction:column;gap:16px;}
-  /* col-l stretches to match col-r height; pay card fills remaining */
-  .col-l{align-self:stretch;}
-  .col-l .pay-card-stretch{flex:1;display:flex;flex-direction:column;}
-  .col-l .pay-card-stretch .pay-list{flex:1;}
+  .dash-grid{
+    grid-template-columns:360px 1fr;
+    gap:20px;
+    /* Row height = viewport minus nav (58px) minus view padding (36px) */
+    grid-template-rows:calc(100vh - 58px - 36px);
+    height:calc(100vh - 58px - 36px);
+  }
+  .col-l{display:flex;flex-direction:column;gap:16px;height:100%;overflow:hidden;}
+  .col-r{display:flex;flex-direction:column;gap:16px;height:100%;overflow:hidden;}
+  /* pay card fills remaining height in col-l */
+  .col-l .pay-card-stretch{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
+  .col-l .pay-card-stretch .pay-list{flex:1;overflow:hidden;min-height:0;}
+  /* evo card never grows - just its natural height */
+  .col-r .evo-card{flex-shrink:0;overflow:hidden;}
+  /* cat card fills all remaining space in col-r, scrolls internally */
+  .col-r .cat-card{flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0;}
+  .col-r .cat-card #catTableWrap{flex:1;overflow-y:auto;min-height:0;}
 }
 /* Mobile: reorder cards visually */
 @media(max-width:959px){
@@ -129,20 +168,26 @@ nav::-webkit-scrollbar{display:none;}
 .pay-amt{font-size:14px;font-weight:800;}
 .pay-pct{font-size:11px;color:var(--ink3);margin-top:1px;}
 
-/* CHART */
-.chart-wrap{position:relative;height:230px;}
+/* CHART — canvas absolute inside fixed wrapper = can never grow */
+.chart-wrap{position:relative;height:230px;min-height:230px;max-height:230px;overflow:hidden;}
+.chart-wrap canvas{position:absolute!important;top:0;left:0;width:100%!important;height:100%!important;}
 .chart-card-wrap{overflow:hidden;border-radius:var(--r);}
-@media(max-width:640px){.chart-wrap{height:190px;}}
+@media(max-width:640px){.chart-wrap{height:190px;min-height:190px;max-height:190px;}}
 
 /* CAT TABLE */
 .cat-reset-btn{font-size:11px;font-weight:700;color:var(--danger);background:rgba(239,68,68,.08);border:none;border-radius:99px;padding:4px 10px;cursor:pointer;display:none;align-items:center;gap:4px;}
 .cat-reset-btn.on{display:inline-flex;}
 /* CAT TABLE — responsive móvil */
-.cat-tbl{width:100%;border-collapse:collapse;}
+.cat-tbl{width:100%;border-collapse:collapse;table-layout:fixed;}
 .cat-tbl th{font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.6px;padding:0 6px 10px 6px;text-align:right;border-bottom:1px solid var(--border2);white-space:nowrap;}
-.cat-tbl th:first-child{text-align:left;padding-left:0;}
+.cat-tbl th:first-child{text-align:left;padding-left:6px;width:30%;}
+.cat-tbl th:nth-child(2){width:14%;}
+.cat-tbl th:nth-child(3){width:14%;}
+.cat-tbl th:nth-child(4){width:16%;}
+.cat-tbl th:nth-child(5){width:10%;}
+.cat-tbl th:nth-child(6){width:16%;}
 .cat-tbl td{padding:9px 6px;border-bottom:1px solid var(--border);vertical-align:middle;text-align:right;}
-.cat-tbl td:first-child{padding-left:0;text-align:left;}
+.cat-tbl td:first-child{padding-left:6px;text-align:left;}
 .cat-tbl tr:last-child td{border-bottom:none;}
 .cat-tbl tbody tr{cursor:pointer;transition:background .15s;border-radius:var(--r-sm);}
 .cat-tbl tbody tr:hover td{background:var(--bg2);}
@@ -276,13 +321,15 @@ nav::-webkit-scrollbar{display:none;}
 <body>
 
 <div id="loader">
-  <div class="ld-logo">Finanzas</div>
+  <div class="ld-logo">Gastos360°</div>
   <div class="ld-bar"><div class="ld-fill"></div></div>
   <div class="ld-sub">Cargando tus datos…</div>
 </div>
 
 <nav>
-  <div class="nav-logo">Finanzas</div>
+  <div class="nav-logo">
+    <img src="https://res.cloudinary.com/did2jvgfv/image/upload/v1777661716/image_ygjaa5.png" alt="logo" style="width:28px;height:28px;border-radius:8px;object-fit:cover;vertical-align:middle;margin-right:8px;">Gastos360°
+  </div>
   <div class="nav-tabs">
     <button class="nav-tab active" onclick="switchView('dash')">Resumen</button>
     <button class="nav-tab"        onclick="switchView('txn')">Movimientos</button>
@@ -344,8 +391,8 @@ nav::-webkit-scrollbar{display:none;}
 
     <div class="col-r">
       <!-- Gráfico unificado: evolutivo general o por filtro -->
-      <div class="card evo-card" style="order:3">
-        <div class="card-hd">
+      <div class="card evo-card" style="order:3;overflow:hidden;flex-shrink:0;">
+        <div class="card-hd" style="flex-shrink:0">
           <div class="card-ttl" id="evo-title">Evolución mensual</div>
           <button class="cat-reset-btn" id="evoResetBtn" onclick="resetFilters()">✕ Quitar filtro</button>
         </div>
@@ -353,7 +400,7 @@ nav::-webkit-scrollbar{display:none;}
       </div>
 
       <!-- Tabla categorías -->
-      <div class="card cat-card" style="order:4">
+      <div class="card cat-card" style="order:4;padding:16px 16px">
         <div class="card-hd">
           <div class="card-ttl">Por categoría</div>
           <button class="cat-reset-btn" id="catResetBtn" onclick="resetFilters()">✕ Quitar filtro</button>
@@ -438,7 +485,7 @@ nav::-webkit-scrollbar{display:none;}
   <div class="visa-inner">
     <div class="card visa-hero">
       <div class="visa-hero-top">
-        <img class="visa-logo" src="https://res.cloudinary.com/did2jvgfv/image/upload/c_crop,w_410,h_260/v1760925944/BannerTC_580x344_Desktop_VisaPlatinumLATAM_1_d1ndyd.png" alt="VISA">
+        <img class="visa-logo" src="https://res.cloudinary.com/did2jvgfv/image/upload/v1777661788/TC_VISA_v2_libnxb.png" alt="VISA">
         <div>
           <div class="visa-hero-lbl">Tarjeta de crédito</div>
           <div class="visa-hero-name">TC VISA Platinum</div>
@@ -497,7 +544,7 @@ const CAT_ICONS={
   'Transporte':{i:'🚗',bg:'rgba(251,146,60,.1)'},'default':{i:'💡',bg:'rgba(156,163,175,.1)'},
 };
 const PAY_METHODS=[
-  {name:'TC VISA',order:1,img:'https://res.cloudinary.com/did2jvgfv/image/upload/c_crop,w_410,h_260/v1760925944/BannerTC_580x344_Desktop_VisaPlatinumLATAM_1_d1ndyd.png'},
+  {name:'TC VISA',order:1,img:'https://res.cloudinary.com/did2jvgfv/image/upload/v1777661788/TC_VISA_v2_libnxb.png'},
   {name:'Yape',order:2,img:'https://res.cloudinary.com/did2jvgfv/image/upload/v1760926030/1-yape-logo-transparencia-2_ew6v7e.png'},
   {name:'TC AMEX',order:3,img:'https://res.cloudinary.com/did2jvgfv/image/upload/v1760925956/Img_tarjeta_Amex-Gold_unico_tamano.png_ax40s9.png'},
   {name:'Efectivo',order:4,img:'https://res.cloudinary.com/did2jvgfv/image/upload/v1760926791/efectivologo_xaefrj.png'},
@@ -592,7 +639,7 @@ function renderKPI(){
   const pctBar=Math.min(pctReal,100);
 
   document.getElementById('kpi-badge').textContent=fmtMFull(selectedMonth);
-  document.getElementById('kpi-total').textContent=fmt(total);
+  document.getElementById('kpi-total').textContent=CURRENCY+Math.round(total).toLocaleString(LOCALE);
   document.getElementById('kpi-budget-val').textContent=budget>0?fmt(budget):'—';
 
   const bar=document.getElementById('kpi-bar');
@@ -655,11 +702,21 @@ function renderLine(){
   }
 
   const maxVal=Math.max(...data),minVal=Math.min(...data);
-  const ctx=document.getElementById('lineChart').getContext('2d');
-  const grad=ctx.createLinearGradient(0,0,0,230);
+  const isMobile=window.innerWidth<640;
+  const chartH=isMobile?190:230;
+  const canvas=document.getElementById('lineChart');
+  const wrap=canvas.parentElement;
+  if(lineChart){lineChart.destroy();lineChart=null;}
+  // Lock wrap dimensions in CSS via inline style so it cannot grow
+  wrap.style.cssText=`position:relative;height:${chartH}px;min-height:${chartH}px;max-height:${chartH}px;overflow:hidden;`;
+  // Set canvas pixel dimensions explicitly
+  const chartW=wrap.getBoundingClientRect().width||wrap.offsetWidth||600;
+  canvas.style.cssText=`display:block;position:absolute;top:0;left:0;width:${chartW}px;height:${chartH}px;`;
+  canvas.width=chartW;
+  canvas.height=chartH;
+  const ctx=canvas.getContext('2d');
+  const grad=ctx.createLinearGradient(0,0,0,chartH);
   grad.addColorStop(0,gradTop); grad.addColorStop(1,gradBot);
-
-  if(lineChart) lineChart.destroy();
   Chart.register(ChartDataLabels);
 
   lineChart=new Chart(ctx,{
@@ -672,7 +729,9 @@ function renderLine(){
       pointHoverRadius:8,fill:true,backgroundColor:grad,
     }]},
     options:{
-      responsive:true,maintainAspectRatio:false,
+      responsive:false,
+      maintainAspectRatio:false,
+      animation:{duration:400},
       layout:{padding:{top:32,right:40,left:40,bottom:4}},
       plugins:{
         legend:{display:false},
@@ -684,7 +743,6 @@ function renderLine(){
             const isMobile=window.innerWidth<640;
             return {family:"'Plus Jakarta Sans',sans-serif",size:isMobile?9:10,weight:'700'};
           },
-          // On mobile show only min/max labels to avoid overlap
           display:ctx2=>{
             if(window.innerWidth>=640) return ctx2.dataset.data[ctx2.dataIndex]!==0;
             const v=ctx2.dataset.data[ctx2.dataIndex];
@@ -724,6 +782,8 @@ function renderCats(){
 
   const catMap={};
   gastos.forEach(r=>{const c=r.categoria||'Sin categoría';catMap[c]=(catMap[c]||0)+montoFinal(r);});
+  // Also include budget categories with zero spend
+  Object.keys(budMap).forEach(c=>{if(!(c in catMap))catMap[c]=0;});
 
   // Previous month for var
   const months=[...new Set(allGastos.map(r=>r._yyyymm))].sort();
@@ -736,7 +796,7 @@ function renderCats(){
 
   const rows=Object.entries(catMap).sort((a,b)=>b[1]-a[1]);
   const wrap=document.getElementById('catTableWrap');
-  if(!rows.length){wrap.innerHTML='<div class="empty"><span class="ei">📭</span>Sin gastos</div>';return;}
+  if(!rows.length&&!Object.keys(budMap).length){wrap.innerHTML='<div class="empty"><span class="ei">📭</span>Sin datos</div>';return;}
 
   const isCatActive=activeFilter?.type==='cat';
 
