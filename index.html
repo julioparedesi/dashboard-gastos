@@ -31,7 +31,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--ink);min-height:10
 .ld-sub{font-size:12px;color:var(--ink3);}
 
 /* NAV */
-nav{position:sticky;top:0;z-index:100;background:rgba(244,245,247,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border2);height:58px;display:flex;align-items:center;padding:0 20px;gap:12px;}
+nav{position:sticky;top:0;z-index:100;background:rgba(244,245,247,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border2);height:58px;display:flex;align-items:center;padding:0 20px;gap:12px;overflow-x:auto;}
+nav::-webkit-scrollbar{display:none;}
 .nav-logo{font-size:16px;font-weight:800;color:var(--ink);white-space:nowrap;}
 .nav-tabs{display:flex;gap:2px;background:var(--bg3);border-radius:10px;padding:3px;flex-shrink:0;}
 .nav-tab{padding:5px 13px;border-radius:8px;border:none;background:transparent;color:var(--ink2);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;transition:all .18s;white-space:nowrap;}
@@ -42,13 +43,16 @@ nav{position:sticky;top:0;z-index:100;background:rgba(244,245,247,.92);backdrop-
 /* VIEWS */
 .view{display:none;padding:18px;}
 .view.active{display:block;animation:fadeUp .3s ease;}
+@media(max-width:640px){.view{padding:12px;}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 
 /* DASH GRID */
 .dash-grid{display:grid;grid-template-columns:1fr;gap:14px;max-width:1440px;margin:0 auto;}
 @media(min-width:960px){
-  .dash-grid{grid-template-columns:360px 1fr;}
+  .dash-grid{grid-template-columns:360px 1fr;align-items:start;}
   .col-l,.col-r{display:flex;flex-direction:column;gap:14px;}
+  /* mini-card ocupa el espacio restante para que col-l quede alineada */
+  .col-l .mini-card{flex:1;}
 }
 
 /* CARD */
@@ -112,10 +116,14 @@ nav{position:sticky;top:0;z-index:100;background:rgba(244,245,247,.92);backdrop-
 
 /* CHART */
 .chart-wrap{position:relative;height:230px;}
+/* prevent labels bleeding outside card on mobile */
+.chart-card-wrap{overflow:hidden;border-radius:var(--r);}
+@media(max-width:640px){.chart-wrap{height:200px;}}
 
 /* CAT TABLE */
 .cat-reset-btn{font-size:11px;font-weight:700;color:var(--danger);background:rgba(239,68,68,.08);border:none;border-radius:99px;padding:4px 10px;cursor:pointer;display:none;align-items:center;gap:4px;}
 .cat-reset-btn.on{display:inline-flex;}
+/* CAT TABLE — responsive móvil */
 .cat-tbl{width:100%;border-collapse:collapse;}
 .cat-tbl th{font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.6px;padding:0 6px 10px 6px;text-align:right;border-bottom:1px solid var(--border2);white-space:nowrap;}
 .cat-tbl th:first-child{text-align:left;padding-left:0;}
@@ -125,6 +133,11 @@ nav{position:sticky;top:0;z-index:100;background:rgba(244,245,247,.92);backdrop-
 .cat-tbl tbody tr{cursor:pointer;transition:background .15s;}
 .cat-tbl tbody tr:hover td{background:var(--bg);}
 .cat-tbl tbody tr.sel td{background:rgba(26,29,35,.03);}
+/* En móvil ocultar columnas Budget y vs mes ant. para que quepa */
+@media(max-width:640px){
+  .cat-col-bud,.cat-col-var{display:none;}
+  .cat-tbl th,.cat-tbl td{padding-left:4px;padding-right:4px;}
+}
 .cat-ic-cell{display:flex;align-items:center;gap:10px;}
 .cat-ic{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
 .cat-nm{font-size:13px;font-weight:600;}
@@ -618,7 +631,7 @@ function renderLine(){
     }]},
     options:{
       responsive:true,maintainAspectRatio:false,
-      layout:{padding:{top:28,right:20,left:20}}, // space for labels
+      layout:{padding:{top:32,right:36,left:36,bottom:4}}, // extra lateral so labels don't clip
       plugins:{
         legend:{display:false},
         tooltip:{backgroundColor:'#1a1d23',titleColor:'#fff',bodyColor:'#9ca3af',padding:10,callbacks:{label:c=>' '+fmt(c.parsed.y)}},
@@ -696,10 +709,10 @@ function renderCats(){
           </div>
         </td>
         <td class="amt-cell">${fmt(spent)}</td>
-        <td class="bud-cell">${budget>0?fmt(budget):'—'}</td>
+        <td class="bud-cell cat-col-bud">${budget>0?fmt(budget):'—'}</td>
         <td class="diff-cell ${diff===null?'':diff>=0?'pos':'neg'}">${diff===null?'—':(diff>=0?'+':'')+fmt(diff)}</td>
         <td><span class="pill ${cls}">${pct<0?'—':pct.toFixed(0)+'%'}</span></td>
-        <td>${varHtml}</td>
+        <td class="cat-col-var">${varHtml}</td>
       </tr>`;
   }).join('');
 
@@ -708,10 +721,10 @@ function renderCats(){
       <thead><tr>
         <th>Categoría</th>
         <th>Gasto</th>
-        <th>Budget</th>
+        <th class="cat-col-bud">Budget</th>
         <th>Diferencia</th>
         <th>Uso</th>
-        <th>vs mes ant.</th>
+        <th class="cat-col-var">vs mes ant.</th>
       </tr></thead>
       <tbody>${trs}</tbody>
     </table>`;
