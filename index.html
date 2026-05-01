@@ -31,7 +31,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--ink);min-height:10
 .ld-sub{font-size:12px;color:var(--ink3);}
 
 /* NAV */
-nav{position:sticky;top:0;z-index:100;background:rgba(244,245,247,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border2);height:58px;display:flex;align-items:center;padding:0 20px;gap:12px;overflow-x:auto;}
+nav{position:sticky;top:0;z-index:100;background:rgba(220,222,228,.97);backdrop-filter:blur(20px);border-bottom:1px solid var(--border2);height:58px;display:flex;align-items:center;padding:0 20px;gap:12px;overflow-x:auto;}
 nav::-webkit-scrollbar{display:none;}
 .nav-logo{font-size:16px;font-weight:800;color:var(--ink);white-space:nowrap;}
 .nav-tabs{display:flex;gap:2px;background:var(--bg3);border-radius:10px;padding:3px;flex-shrink:0;}
@@ -43,27 +43,30 @@ nav::-webkit-scrollbar{display:none;}
 /* VIEWS */
 .view{display:none;padding:18px;}
 .view.active{display:block;animation:fadeUp .3s ease;}
-@media(max-width:640px){.view{padding:12px;}.dash-grid{gap:10px;}}
+@media(max-width:640px){.view{padding:10px;}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 
 /* DASH GRID */
 .dash-grid{display:grid;grid-template-columns:1fr;gap:16px;max-width:1440px;margin:0 auto;}
 @media(min-width:960px){
-  .dash-grid{grid-template-columns:360px 1fr;gap:20px;align-items:start;}
-  .col-l,.col-r{display:flex;flex-direction:column;gap:16px;}
+  .dash-grid{grid-template-columns:360px 1fr;gap:20px;}
+  .col-l{display:flex;flex-direction:column;gap:16px;}
+  .col-r{display:flex;flex-direction:column;gap:16px;}
+  /* col-l stretches to match col-r height; pay card fills remaining */
+  .col-l{align-self:stretch;}
   .col-l .pay-card-stretch{flex:1;display:flex;flex-direction:column;}
   .col-l .pay-card-stretch .pay-list{flex:1;}
 }
 /* Mobile: reorder cards visually */
 @media(max-width:959px){
   .dash-grid{display:flex;flex-direction:column;gap:12px;}
-  .col-l{display:contents;} /* dissolve col-l so children flow into flex parent */
+  .col-l{display:contents;}
   .col-r{display:contents;}
   /* order: kpi(1) mini(2) → evo chart(3) → cat table(4) → pay(5) */
-  .kpi-card      {order:1;}
-  .mini-card     {order:2;}
-  .evo-card      {order:3;}
-  .cat-card      {order:4;}
+  .kpi-card        {order:1;}
+  .mini-card       {order:2;}
+  .evo-card        {order:3;}
+  .cat-card        {order:4;}
   .pay-card-stretch{order:5;}
 }
 
@@ -111,8 +114,8 @@ nav::-webkit-scrollbar{display:none;}
 .mini-sub{font-size:11px;color:var(--ink3);margin-top:3px;}
 
 /* PAY */
-.pay-list{display:flex;flex-direction:column;gap:9px;}
-.pay-item{display:flex;align-items:center;gap:11px;padding:11px 13px;background:var(--card2);border-radius:var(--r-sm);border:1px solid var(--border);cursor:pointer;transition:all .18s;}
+.pay-list{display:flex;flex-direction:column;gap:8px;flex:1;}
+.pay-item{display:flex;align-items:center;gap:11px;padding:14px 13px;background:var(--card2);border-radius:var(--r-sm);border:1px solid var(--border);cursor:pointer;transition:all .18s;flex:1;min-height:56px;}
 .pay-item:hover{box-shadow:var(--sh);}
 .pay-item.sel{background:rgba(26,29,35,.05);border-color:var(--ink);}
 .pay-rank{font-size:11px;font-weight:800;color:var(--ink3);width:12px;flex-shrink:0;}
@@ -141,9 +144,13 @@ nav::-webkit-scrollbar{display:none;}
 .cat-tbl td{padding:9px 6px;border-bottom:1px solid var(--border);vertical-align:middle;text-align:right;}
 .cat-tbl td:first-child{padding-left:0;text-align:left;}
 .cat-tbl tr:last-child td{border-bottom:none;}
-.cat-tbl tbody tr{cursor:pointer;transition:background .15s;}
-.cat-tbl tbody tr:hover td{background:var(--bg);}
+.cat-tbl tbody tr{cursor:pointer;transition:background .15s;border-radius:var(--r-sm);}
+.cat-tbl tbody tr:hover td{background:var(--bg2);}
+.cat-tbl tbody tr:hover td:first-child{border-radius:var(--r-sm) 0 0 var(--r-sm);}
+.cat-tbl tbody tr:hover td:last-child{border-radius:0 var(--r-sm) var(--r-sm) 0;}
 .cat-tbl tbody tr.sel td{background:rgba(26,29,35,.03);}
+.cat-tbl tbody tr.sel td:first-child{border-radius:var(--r-sm) 0 0 var(--r-sm);}
+.cat-tbl tbody tr.sel td:last-child{border-radius:0 var(--r-sm) var(--r-sm) 0;}
 /* En móvil ocultar columnas Budget y vs mes ant. para que quepa */
 @media(max-width:640px){
   .cat-col-bud,.cat-col-var{display:none;}
@@ -190,8 +197,11 @@ nav::-webkit-scrollbar{display:none;}
 .txn-kpi.highlight .txn-kpi-sub{color:rgba(255,255,255,.4);}
 
 /* FILTERS */
-.filters-wrap{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
-.f-sel,.f-inp{flex:1;min-width:130px;background:var(--card);border:1px solid var(--border2);color:var(--ink);border-radius:10px;padding:8px 11px;font-size:13px;font-family:var(--font);outline:none;cursor:pointer;}
+.filters-wrap{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+@media(min-width:640px){.filters-wrap{display:flex;flex-wrap:wrap;}}
+.filters-wrap .btn-clr{grid-column:1/-1;} /* limpiar spans full width on mobile */
+.f-sel,.f-inp{background:var(--card);border:1px solid var(--border2);color:var(--ink);border-radius:10px;padding:8px 11px;font-size:13px;font-family:var(--font);outline:none;cursor:pointer;width:100%;}
+@media(min-width:640px){.f-sel,.f-inp{flex:1;min-width:130px;width:auto;}}
 .f-sel:focus,.f-inp:focus{border-color:var(--ink);}
 .btn-clr{background:var(--card);border:1px solid var(--border2);color:var(--ink2);border-radius:10px;padding:8px 13px;font-size:13px;font-family:var(--font);cursor:pointer;white-space:nowrap;}
 .btn-clr:hover{background:var(--bg3);}
@@ -287,7 +297,7 @@ nav::-webkit-scrollbar{display:none;}
 <div class="view active" id="view-dash">
   <div class="dash-grid">
     <div class="col-l">
-      <div class="card kpi-card">
+      <div class="card kpi-card" style="order:1">
         <div class="kpi-top">
           <div class="kpi-label">Gasto del mes</div>
           <div class="kpi-month-badge" id="kpi-badge">—</div>
@@ -320,13 +330,13 @@ nav::-webkit-scrollbar{display:none;}
         </div>
       </div>
 
-      <div class="mini-card">
+      <div class="mini-card" style="order:2">
         <div class="mini-lbl">Restante / Excedido</div>
         <div class="mini-val" id="mini-rest">S/ 0</div>
         <div class="mini-sub" id="mini-rest-sub">respecto al presupuesto</div>
       </div>
 
-      <div class="card pay-card-stretch">
+      <div class="card pay-card-stretch" style="order:5">
         <div class="card-hd"><div class="card-ttl">Método de pago</div></div>
         <div class="pay-list" id="pay-list"></div>
       </div>
@@ -334,7 +344,7 @@ nav::-webkit-scrollbar{display:none;}
 
     <div class="col-r">
       <!-- Gráfico unificado: evolutivo general o por filtro -->
-      <div class="card">
+      <div class="card evo-card" style="order:3">
         <div class="card-hd">
           <div class="card-ttl" id="evo-title">Evolución mensual</div>
           <button class="cat-reset-btn" id="evoResetBtn" onclick="resetFilters()">✕ Quitar filtro</button>
@@ -343,7 +353,7 @@ nav::-webkit-scrollbar{display:none;}
       </div>
 
       <!-- Tabla categorías -->
-      <div class="card">
+      <div class="card cat-card" style="order:4">
         <div class="card-hd">
           <div class="card-ttl">Por categoría</div>
           <button class="cat-reset-btn" id="catResetBtn" onclick="resetFilters()">✕ Quitar filtro</button>
@@ -453,10 +463,10 @@ nav::-webkit-scrollbar{display:none;}
         </div>
       </div>
       <!-- Date filters -->
-      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
-        <input type="date" class="f-inp" id="visa-from" placeholder="Desde" style="flex:1;min-width:130px;">
-        <input type="date" class="f-inp" id="visa-to" placeholder="Hasta" style="flex:1;min-width:130px;">
-        <button class="btn-clr" onclick="clearVisaFilters()" style="font-size:12px;padding:8px 12px;">✕ Limpiar</button>
+      <div class="filters-wrap">
+        <input type="date" class="f-inp" id="visa-from" placeholder="Desde">
+        <input type="date" class="f-inp" id="visa-to" placeholder="Hasta">
+        <button class="btn-clr" onclick="clearVisaFilters()">✕ Limpiar</button>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px;flex-wrap:wrap;">
         <div class="txn-count" id="visa-count" style="margin-bottom:0">0 movimientos</div>
@@ -842,9 +852,25 @@ function populateFilters(){
   document.getElementById('f-periodo').innerHTML='<option value="">Todos los períodos</option>'+months.map(m=>`<option value="${m}">${fmtMFull(m)}</option>`).join('');
   document.getElementById('f-cat').innerHTML='<option value="">Todas las categorías</option>'+cats.map(c=>`<option value="${c}">${c}</option>`).join('');
   document.getElementById('f-met').innerHTML='<option value="">Todos los métodos</option>'+mets.map(m=>`<option value="${m}">${m}</option>`).join('');
+  // Default: last 2 months date range
+  const sorted=[...months].sort();
+  if(sorted.length>=2){
+    // from = first day of month 2 months ago
+    const twoAgo=sorted[sorted.length-2];
+    const fromY=twoAgo.slice(0,4), fromM=twoAgo.slice(4);
+    document.getElementById('f-from').value=`${fromY}-${fromM}-01`;
+  }
   ['f-periodo','f-cat','f-met','f-from','f-to'].forEach(id=>document.getElementById(id).addEventListener('change',renderTxnView));
 }
-function clearFilters(){['f-periodo','f-cat','f-met','f-from','f-to'].forEach(id=>document.getElementById(id).value='');selectedTxnIds.clear();renderTxnView();}
+function clearFilters(){
+  document.getElementById('f-periodo').value='';
+  document.getElementById('f-cat').value='';
+  document.getElementById('f-met').value='';
+  document.getElementById('f-from').value='';
+  document.getElementById('f-to').value='';
+  selectedTxnIds.clear();
+  renderTxnView();
+}
 
 let currentFilteredTxns=[];
 
@@ -896,8 +922,8 @@ function renderTxnList(list){
     const shared=String(r.flg_compartido)==='1'&&String(r.flg_devolucion)==='0';
     const isSel=selectedTxnIds.has(r._id);
     return `
-      <div class="txn-item${isSel?' selected':''}" data-id="${r._id}">
-        <div class="txn-check" onclick="toggleTxnSel(${r._id})"><div class="txn-check-inner"></div></div>
+      <div class="txn-item${isSel?' selected':''}" data-id="${r._id}" onclick="toggleTxnSel(${r._id})" style="cursor:pointer">
+        <div class="txn-check"><div class="txn-check-inner"></div></div>
         <div class="txn-ic" style="background:${m.bg}">${m.i}</div>
         <div class="txn-body">
           <div class="txn-det">${r.detalle||r.comentario||'—'}</div>
@@ -1007,16 +1033,28 @@ function renderDeudas(){
 //  VISA
 // ══════════════════════════════════════════════
 function clearVisaFilters(){
-  document.getElementById('visa-from').value='';
-  document.getElementById('visa-to').value='';
+  // Reset to default: last 2 months
+  const months=[...new Set(allGastos.map(r=>r._yyyymm))].sort();
+  const vfrom=document.getElementById('visa-from');
+  const vto=document.getElementById('visa-to');
+  if(vfrom) vfrom.value='';
+  if(vto)   vto.value='';
+  if(vfrom&&months.length>=2){
+    const twoAgo=months[months.length-2];
+    vfrom.value=`${twoAgo.slice(0,4)}-${twoAgo.slice(4)}-01`;
+  }
+  selectedVisaIds.clear();
   renderVisa();
 }
 function renderVisa(){
   const from=document.getElementById('visa-from')?.value;
   const to=document.getElementById('visa-to')?.value;
-  let gastos=allGastos.filter(r=>r._yyyymm===selectedMonth&&(r.metodo_pago||'').trim()===VISA_NAME);
+  // All VISA gastos, filtered by date range (independent of periodo selector)
+  let gastos=allGastos.filter(r=>(r.metodo_pago||'').trim()===VISA_NAME);
   if(from) gastos=gastos.filter(r=>r._date>=new Date(from));
   if(to)   gastos=gastos.filter(r=>r._date<=new Date(to+'T23:59:59'));
+  // If no date filter at all, default to selectedMonth
+  if(!from&&!to) gastos=gastos.filter(r=>r._yyyymm===selectedMonth);
 
   const total=gastos.reduce((s,r)=>s+(parseFloat(r.monto)||0),0);
   document.getElementById('visa-total').textContent=fmt(total);
@@ -1047,8 +1085,8 @@ function renderVisa(){
     const date=r._date?r._date.toLocaleDateString('es-PE',{day:'2-digit',month:'short',year:'numeric'}):'';
     const isSel=selectedVisaIds.has(r._id);
     return `
-      <div class="txn-item${isSel?' selected':''}" data-visa-id="${r._id}">
-        <div class="txn-check" onclick="toggleVisaSel(${r._id})"><div class="txn-check-inner"></div></div>
+      <div class="txn-item${isSel?' selected':''}" data-visa-id="${r._id}" onclick="toggleVisaSel(${r._id})" style="cursor:pointer">
+        <div class="txn-check"><div class="txn-check-inner"></div></div>
         <div class="txn-ic" style="background:${m.bg}">${m.i}</div>
         <div class="txn-body">
           <div class="txn-det">${r.detalle||r.comentario||'—'}</div>
@@ -1100,6 +1138,16 @@ function switchView(v){
   document.querySelectorAll('.nav-tab')[{dash:0,txn:1,deudas:2,visa:3}[v]].classList.add('active');
   if(v==='txn') renderTxnView();
   if(v==='visa'){
+    // Set default date range = last 2 months if not already set
+    const vfrom=document.getElementById('visa-from');
+    const vto=document.getElementById('visa-to');
+    if(vfrom&&!vfrom.value){
+      const months=[...new Set(allGastos.map(r=>r._yyyymm))].sort();
+      if(months.length>=2){
+        const twoAgo=months[months.length-2];
+        vfrom.value=`${twoAgo.slice(0,4)}-${twoAgo.slice(4)}-01`;
+      }
+    }
     renderVisa();
     ['visa-from','visa-to'].forEach(id=>{
       const el=document.getElementById(id);
