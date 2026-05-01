@@ -70,8 +70,14 @@ nav::-webkit-scrollbar{display:none;}
 /* VIEWS */
 .view{display:none;padding:18px;}
 .view.active{display:block;animation:fadeUp .3s ease;}
-/* On desktop, dash view should not scroll - content is viewport-locked */
-@media(min-width:960px){#view-dash.active{overflow:hidden;padding:18px;height:calc(100vh - 58px);}}
+@media(min-width:960px){
+  #view-dash.active{
+    height:calc(100vh - 58px);
+    max-height:calc(100vh - 58px);
+    overflow:hidden;
+    padding:18px;
+  }
+}
 @media(max-width:640px){.view{padding:10px;}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 
@@ -81,20 +87,25 @@ nav::-webkit-scrollbar{display:none;}
   .dash-grid{
     grid-template-columns:360px 1fr;
     gap:20px;
-    /* Row height = viewport minus nav (58px) minus view padding (36px) */
-    grid-template-rows:calc(100vh - 58px - 36px);
-    height:calc(100vh - 58px - 36px);
   }
-  .col-l{display:flex;flex-direction:column;gap:16px;height:100%;overflow:hidden;}
-  .col-r{display:flex;flex-direction:column;gap:16px;height:100%;overflow:hidden;}
+  .col-l{display:flex;flex-direction:column;gap:16px;}
+  .col-r{
+    display:flex;flex-direction:column;gap:16px;
+    /* Lock col-r to exactly the visible area — nothing can push it taller */
+    height:calc(100vh - 58px - 36px);
+    max-height:calc(100vh - 58px - 36px);
+    overflow:hidden;
+  }
   /* pay card fills remaining height in col-l */
   .col-l .pay-card-stretch{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
   .col-l .pay-card-stretch .pay-list{flex:1;overflow:hidden;min-height:0;}
-  /* evo card never grows - just its natural height */
+  /* evo card: fixed, never grows */
   .col-r .evo-card{flex-shrink:0;overflow:hidden;}
-  /* cat card fills all remaining space in col-r, scrolls internally */
-  .col-r .cat-card{flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0;}
-  .col-r .cat-card #catTableWrap{flex:1;overflow-y:auto;min-height:0;}
+  /* cat card: fills all remaining height, table scrolls internally */
+  .col-r .cat-card{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;}
+  .col-r .cat-card .card-hd{flex-shrink:0;}
+  .col-r .cat-card #catTableWrap{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;}
+  .col-r .cat-card #catTableWrap::-webkit-scrollbar{display:none;}
 }
 /* Mobile: reorder cards visually */
 @media(max-width:959px){
@@ -153,13 +164,13 @@ nav::-webkit-scrollbar{display:none;}
 .mini-sub{font-size:11px;color:var(--ink3);margin-top:3px;}
 
 /* PAY */
-.pay-list{display:flex;flex-direction:column;gap:8px;flex:1;}
-.pay-item{display:flex;align-items:center;gap:11px;padding:14px 13px;background:var(--card2);border-radius:var(--r-sm);border:1px solid var(--border);cursor:pointer;transition:all .18s;flex:1;min-height:56px;}
+.pay-list{display:flex;flex-direction:column;gap:6px;flex:1;}
+.pay-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card2);border-radius:var(--r-sm);border:1px solid var(--border);cursor:pointer;transition:all .18s;flex:1;min-height:0;}
 .pay-item:hover{box-shadow:var(--sh);}
-.pay-item.sel{background:rgba(26,29,35,.05);border-color:var(--ink);}
+.pay-item.sel{background:rgba(26,29,35,.06);border-color:rgba(26,29,35,.3);}
 .pay-rank{font-size:11px;font-weight:800;color:var(--ink3);width:12px;flex-shrink:0;}
-.pay-logo{width:52px;height:30px;object-fit:contain;border-radius:6px;flex-shrink:0;background:#fff;padding:3px;border:1px solid var(--border);}
-.pay-logo-fb{width:52px;height:30px;border-radius:6px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--ink2);flex-shrink:0;}
+.pay-logo{width:44px;height:26px;object-fit:contain;border-radius:6px;flex-shrink:0;background:#fff;padding:2px;border:1px solid var(--border);}
+.pay-logo-fb{width:44px;height:26px;border-radius:6px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:var(--ink2);flex-shrink:0;}
 .pay-info{flex:1;min-width:0;}
 .pay-name{font-size:13px;font-weight:700;}
 .pay-bar-w{background:var(--bg3);border-radius:99px;height:3px;margin-top:5px;overflow:hidden;}
@@ -168,38 +179,47 @@ nav::-webkit-scrollbar{display:none;}
 .pay-amt{font-size:14px;font-weight:800;}
 .pay-pct{font-size:11px;color:var(--ink3);margin-top:1px;}
 
-/* CHART — canvas absolute inside fixed wrapper = can never grow */
-.chart-wrap{position:relative;height:230px;min-height:230px;max-height:230px;overflow:hidden;}
-.chart-wrap canvas{position:absolute!important;top:0;left:0;width:100%!important;height:100%!important;}
+/* CHART — canvas absolute inside fixed evo-card (310px total) */
+.chart-wrap{position:relative;flex:1;min-height:0;overflow:hidden;}
+.chart-wrap canvas{position:absolute!important;top:0;left:0;}
 .chart-card-wrap{overflow:hidden;border-radius:var(--r);}
-@media(max-width:640px){.chart-wrap{height:190px;min-height:190px;max-height:190px;}}
+@media(max-width:640px){.chart-wrap{height:190px;min-height:190px;}}
 
 /* CAT TABLE */
 .cat-reset-btn{font-size:11px;font-weight:700;color:var(--danger);background:rgba(239,68,68,.08);border:none;border-radius:99px;padding:4px 10px;cursor:pointer;display:none;align-items:center;gap:4px;}
 .cat-reset-btn.on{display:inline-flex;}
 /* CAT TABLE — responsive móvil */
 .cat-tbl{width:100%;border-collapse:collapse;table-layout:fixed;}
-.cat-tbl th{font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.6px;padding:0 6px 10px 6px;text-align:right;border-bottom:1px solid var(--border2);white-space:nowrap;}
+.cat-tbl th{font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.6px;padding:0 6px 8px 6px;text-align:right;border-bottom:1px solid var(--border2);white-space:nowrap;}
 .cat-tbl th:first-child{text-align:left;padding-left:6px;width:30%;}
 .cat-tbl th:nth-child(2){width:14%;}
 .cat-tbl th:nth-child(3){width:14%;}
 .cat-tbl th:nth-child(4){width:16%;}
 .cat-tbl th:nth-child(5){width:10%;}
 .cat-tbl th:nth-child(6){width:16%;}
-.cat-tbl td{padding:9px 6px;border-bottom:1px solid var(--border);vertical-align:middle;text-align:right;}
+.cat-tbl td{padding:7px 6px;border-bottom:1px solid var(--border);vertical-align:middle;text-align:right;}
 .cat-tbl td:first-child{padding-left:6px;text-align:left;}
 .cat-tbl tr:last-child td{border-bottom:none;}
 .cat-tbl tbody tr{cursor:pointer;transition:background .15s;border-radius:var(--r-sm);}
 .cat-tbl tbody tr:hover td{background:var(--bg2);}
 .cat-tbl tbody tr:hover td:first-child{border-radius:var(--r-sm) 0 0 var(--r-sm);}
 .cat-tbl tbody tr:hover td:last-child{border-radius:0 var(--r-sm) var(--r-sm) 0;}
-.cat-tbl tbody tr.sel td{background:rgba(26,29,35,.03);}
+/* Selected row — visible but not aggressive */
+.cat-tbl tbody tr.sel td{background:rgba(26,29,35,.07);}
 .cat-tbl tbody tr.sel td:first-child{border-radius:var(--r-sm) 0 0 var(--r-sm);}
 .cat-tbl tbody tr.sel td:last-child{border-radius:0 var(--r-sm) var(--r-sm) 0;}
+.cat-tbl tbody tr.sel .cat-nm{font-weight:800;}
 /* En móvil ocultar columnas Budget y vs mes ant. para que quepa */
 @media(max-width:640px){
   .cat-col-bud,.cat-col-var{display:none;}
-  .cat-tbl th,.cat-tbl td{padding-left:4px;padding-right:4px;}
+  .cat-tbl th,.cat-tbl td{padding-left:3px;padding-right:3px;padding-top:6px;padding-bottom:6px;}
+  .cat-nm{font-size:11px;}
+  .cat-ic{width:26px;height:26px;font-size:13px;}
+  .cat-ic-cell{gap:6px;}
+  .cat-bar-w{width:48px;}
+  .amt-cell{font-size:11px;}
+  .diff-cell{font-size:11px;}
+  .pill{font-size:10px;padding:2px 6px;}
 }
 .cat-ic-cell{display:flex;align-items:center;gap:10px;}
 .cat-ic{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
@@ -377,10 +397,17 @@ nav::-webkit-scrollbar{display:none;}
         </div>
       </div>
 
-      <div class="mini-card" style="order:2">
-        <div class="mini-lbl">Restante / Excedido</div>
-        <div class="mini-val" id="mini-rest">S/ 0</div>
-        <div class="mini-sub" id="mini-rest-sub">respecto al presupuesto</div>
+      <div style="order:2;display:flex;flex-direction:column;gap:10px;">
+        <div class="mini-card">
+          <div class="mini-lbl">Restante / Excedido</div>
+          <div class="mini-val" id="mini-rest">S/ 0</div>
+          <div class="mini-sub" id="mini-rest-sub">del presupuesto</div>
+        </div>
+        <div class="mini-card">
+          <div class="mini-lbl">Mayor categoría del mes</div>
+          <div class="mini-val" id="mini-topcat" style="font-size:15px;letter-spacing:0;font-weight:800">—</div>
+          <div class="mini-sub" id="mini-topcat-amt"></div>
+        </div>
       </div>
 
       <div class="card pay-card-stretch" style="order:5">
@@ -391,19 +418,18 @@ nav::-webkit-scrollbar{display:none;}
 
     <div class="col-r">
       <!-- Gráfico unificado: evolutivo general o por filtro -->
-      <div class="card evo-card" style="order:3;overflow:hidden;flex-shrink:0;">
-        <div class="card-hd" style="flex-shrink:0">
-          <div class="card-ttl" id="evo-title">Evolución mensual</div>
+      <div class="card evo-card" style="order:3;overflow:hidden;flex-shrink:0;height:310px;min-height:310px;max-height:310px;display:flex;flex-direction:column;">
+        <div class="card-hd" style="flex-shrink:0;min-height:36px;align-items:center;">
+          <div class="card-ttl" id="evo-title" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:70%;">Evolución mensual</div>
           <button class="cat-reset-btn" id="evoResetBtn" onclick="resetFilters()">✕ Quitar filtro</button>
         </div>
-        <div class="chart-wrap"><canvas id="lineChart"></canvas></div>
+        <div class="chart-wrap" style="flex:1;min-height:0;"><canvas id="lineChart"></canvas></div>
       </div>
 
       <!-- Tabla categorías -->
       <div class="card cat-card" style="order:4;padding:16px 16px">
         <div class="card-hd">
           <div class="card-ttl">Por categoría</div>
-          <button class="cat-reset-btn" id="catResetBtn" onclick="resetFilters()">✕ Quitar filtro</button>
         </div>
         <div id="catTableWrap"><div class="empty"><span class="ei">⏳</span>Cargando…</div></div>
       </div>
@@ -622,7 +648,6 @@ function renderAll(){renderKPI();renderLine();renderCats();renderPay();renderTxn
 function updateResetBtns(){
   const on=activeFilter!==null;
   document.getElementById('evoResetBtn').classList.toggle('on',on);
-  document.getElementById('catResetBtn').classList.toggle('on',on);
 }
 function resetFilters(){activeFilter=null;updateResetBtns();renderLine();renderCats();renderPay();}
 
@@ -657,6 +682,17 @@ function renderKPI(){
   document.getElementById('mini-rest').textContent=fmt(Math.abs(rest));
   document.getElementById('mini-rest').className='mini-val '+(rest>=0?'ok':'bad');
   document.getElementById('mini-rest-sub').textContent=rest>=0?'disponible del presupuesto':'excedido del presupuesto';
+
+  // Top category mini card
+  const catMap2={};
+  gastos.forEach(r=>{const c=r.categoria||'Sin categoría';catMap2[c]=(catMap2[c]||0)+montoFinal(r);});
+  const topCat=Object.entries(catMap2).sort((a,b)=>b[1]-a[1])[0];
+  const tcEl=document.getElementById('mini-topcat');
+  const tcAmt=document.getElementById('mini-topcat-amt');
+  if(tcEl){
+    tcEl.textContent=topCat?`${catMeta(topCat[0]).i} ${topCat[0]}`:'—';
+    if(tcAmt) tcAmt.textContent=topCat?fmt(topCat[1])+' gastado':'';
+  }
 
   const months=[...new Set(allGastos.map(r=>r._yyyymm))].sort();
   const idx=months.indexOf(selectedMonth);
@@ -703,17 +739,17 @@ function renderLine(){
 
   const maxVal=Math.max(...data),minVal=Math.min(...data);
   const isMobile=window.innerWidth<640;
-  const chartH=isMobile?190:230;
   const canvas=document.getElementById('lineChart');
   const wrap=canvas.parentElement;
-  if(lineChart){lineChart.destroy();lineChart=null;}
-  // Lock wrap dimensions in CSS via inline style so it cannot grow
-  wrap.style.cssText=`position:relative;height:${chartH}px;min-height:${chartH}px;max-height:${chartH}px;overflow:hidden;`;
-  // Set canvas pixel dimensions explicitly
+  // READ width/height BEFORE destroying (destroy collapses canvas to 0)
   const chartW=wrap.getBoundingClientRect().width||wrap.offsetWidth||600;
-  canvas.style.cssText=`display:block;position:absolute;top:0;left:0;width:${chartW}px;height:${chartH}px;`;
-  canvas.width=chartW;
-  canvas.height=chartH;
+  const chartH=isMobile?190:(wrap.getBoundingClientRect().height||wrap.offsetHeight||250);
+  if(lineChart){lineChart.destroy();lineChart=null;}
+  // Lock wrap and canvas with saved dimensions
+  wrap.style.cssText=`flex:1;min-height:0;position:relative;overflow:hidden;`;
+  canvas.style.cssText=`display:block;position:absolute;top:0;left:0;`;
+  canvas.width=Math.round(chartW);
+  canvas.height=Math.round(chartH);
   const ctx=canvas.getContext('2d');
   const grad=ctx.createLinearGradient(0,0,0,chartH);
   grad.addColorStop(0,gradTop); grad.addColorStop(1,gradBot);
@@ -858,6 +894,7 @@ function toggleCatFilter(cat){
   updateResetBtns();
   renderLine();
   renderCats();
+  renderPay(); // clear pay highlight
 }
 
 // ══════════════════════════════════════════════
@@ -900,6 +937,7 @@ function togglePayFilter(pay){
   updateResetBtns();
   renderLine();
   renderPay();
+  renderCats(); // clear cat highlight
 }
 
 // ══════════════════════════════════════════════
