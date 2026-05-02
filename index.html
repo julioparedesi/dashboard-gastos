@@ -101,11 +101,12 @@ nav::-webkit-scrollbar{display:none;}
     max-height:calc(100vh - 58px - 36px);
     overflow:hidden;
   }
-  /* pay card: natural height, no stretching */
-  .col-l .pay-card-stretch{flex-shrink:0;display:flex;flex-direction:column;overflow:hidden;}
-  .col-l .pay-card-stretch .pay-list{overflow:hidden;}
-  /* hide mini-top-card on laptop — not enough vertical room */
-  #mini-top-card{display:none;}
+  /* C: pay card fills remaining col-l space */
+  .col-l .pay-card-stretch{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
+  .col-l .pay-card-stretch .pay-list{flex:1;overflow:hidden;min-height:0;}
+  /* B: show on all desktop, compact size */
+  #mini-top-card{display:block;flex-shrink:0;padding:10px 14px!important;}
+  #mini-top-card .card-ttl{margin-bottom:6px!important;}
   /* Compact KPI card on laptop */
   .kpi-card{padding:12px;}
   .kpi-top{margin-bottom:3px;}
@@ -143,15 +144,12 @@ nav::-webkit-scrollbar{display:none;}
   .dash-grid{display:flex;flex-direction:column;gap:12px;}
   .col-l{display:contents;}
   .col-r{display:contents;}
+  /* Mobile order: A D C E */
   .kpi-card        {order:1;}
-  #mini-top-card   {order:2;}
-  .evo-card        {order:3;}
-  .cat-card        {order:4;}
-  .pay-card-stretch{order:5;}
-}
-@media(max-width:640px){
-  #mini-top-card{display:none;}
-  .evo-card{order:2;}
+  .cat-card        {order:2;}
+  .pay-card-stretch{order:3;}
+  .evo-card        {order:4;}
+  #mini-top-card   {order:5;display:none;}
 }
 
 /* CARD */
@@ -165,7 +163,6 @@ nav::-webkit-scrollbar{display:none;}
   .pay-logo{width:38px;height:22px;}
   .pay-list{gap:5px;}
   .card-hd{margin-bottom:10px;}
-  .col-r .evo-card{height:30vh !important;min-height:180px !important;max-height:260px !important;}
 }
 .card-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
 .card-ttl{font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.9px;}
@@ -205,7 +202,7 @@ nav::-webkit-scrollbar{display:none;}
 
 /* PAY */
 .pay-list{display:flex;flex-direction:column;gap:6px;flex:1;}
-.pay-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card2);border-radius:var(--r-sm);border:1px solid var(--border);cursor:pointer;transition:all .18s;flex:1;min-height:44px;max-height:80px;}
+.pay-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card2);border-radius:var(--r-sm);border:1px solid var(--border);cursor:pointer;transition:all .18s;flex:1;min-height:44px;}
 .pay-item:hover{box-shadow:var(--sh);}
 .pay-item.sel{background:rgba(26,29,35,.06);border-color:rgba(26,29,35,.3);}
 .pay-rank{font-size:11px;font-weight:800;color:var(--ink3);width:12px;flex-shrink:0;}
@@ -224,8 +221,10 @@ nav::-webkit-scrollbar{display:none;}
 /* CHART */
 .chart-wrap{position:relative;overflow:hidden;}
 .chart-wrap canvas{position:absolute!important;top:0;left:0;}
-/* Mobile: explicit height */
-@media(max-width:959px){.chart-wrap{height:260px;min-height:260px;flex:none;}}
+/* Mobile: explicit height — also set via JS wrap.style */
+@media(max-width:959px){
+  .chart-wrap{height:240px !important;min-height:240px;flex:none;}
+}
 /* Desktop: fill evo-card */
 @media(min-width:960px){.chart-wrap{flex:1;min-height:0;}}
 
@@ -268,6 +267,10 @@ nav::-webkit-scrollbar{display:none;}
     background:var(--card);
     min-width:105px;max-width:120px;
     padding-left:0;padding-right:10px;
+  }
+  /* Corner cell: sticky top AND left */
+  .cat-tbl th:first-child{
+    top:0;z-index:5;background:var(--card);
   }
   .cat-tbl tbody tr.sel td:first-child{background:rgba(26,29,35,.07);}
   .cat-tbl tbody tr:hover td:first-child{background:var(--bg2);}
@@ -436,7 +439,7 @@ nav::-webkit-scrollbar{display:none;}
 <div class="view active" id="view-dash">
   <div class="dash-grid">
     <div class="col-l">
-      <div class="card kpi-card" style="order:1">
+      <div class="card kpi-card">
         <div class="kpi-top">
           <div class="kpi-label">Gasto del mes</div>
           <div class="kpi-month-badge" id="kpi-badge">—</div>
@@ -485,7 +488,7 @@ nav::-webkit-scrollbar{display:none;}
         </div>
       </div>
 
-      <div class="card pay-card-stretch" style="order:5">
+      <div class="card pay-card-stretch">
         <div class="card-hd"><div class="card-ttl">Método de pago</div></div>
         <div class="pay-list" id="pay-list"></div>
       </div>
@@ -493,7 +496,7 @@ nav::-webkit-scrollbar{display:none;}
 
     <div class="col-r">
       <!-- Tabla categorías — PRIMERO -->
-      <div class="card cat-card" style="order:4;padding:16px 16px">
+      <div class="card cat-card" style="padding:16px 16px">
         <div class="card-hd">
           <div class="card-ttl">Por categoría</div>
         </div>
@@ -501,7 +504,7 @@ nav::-webkit-scrollbar{display:none;}
       </div>
 
       <!-- Gráfico evolutivo — ABAJO -->
-      <div class="card evo-card" style="order:3;overflow:hidden;flex-shrink:0;display:flex;flex-direction:column;" id="evoCard">
+      <div class="card evo-card" id="evoCard" style="overflow:hidden;display:flex;flex-direction:column;flex-shrink:0;">
         <div class="card-hd" style="flex-shrink:0;min-height:36px;align-items:center;">
           <div class="card-ttl" id="evo-title" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:70%;">Evolución mensual</div>
           <button class="cat-reset-btn" id="evoResetBtn" onclick="resetFilters()">✕ Quitar filtro</button>
@@ -728,7 +731,16 @@ async function init(){
 }
 function hideLoader(){const l=document.getElementById('loader');l.style.opacity='0';setTimeout(()=>l.style.display='none',500);}
 function onMonthChange(){selectedMonth=document.getElementById('monthSel').value;activeFilter=null;selectedTxnIds.clear();updateResetBtns();renderAll();}
-function renderAll(){renderKPI();renderLine();renderCats();renderPay();renderTxnView();renderDeudas();renderVisa();}
+function renderAll(){
+  renderKPI();
+  renderCats();
+  renderPay();
+  renderTxnView();
+  renderDeudas();
+  renderVisa();
+  // Defer chart render so CSS layout settles first (critical on mobile)
+  requestAnimationFrame(()=>requestAnimationFrame(renderLine));
+}
 function updateResetBtns(){
   const on=activeFilter!==null;
   document.getElementById('evoResetBtn').classList.toggle('on',on);
@@ -810,17 +822,26 @@ function renderLine(){
   const isMobile=window.innerWidth<960;
   const canvas=document.getElementById('lineChart');
   const wrap=canvas.parentElement;
+
+  // Read dimensions BEFORE destroying
   const chartW=wrap.getBoundingClientRect().width||wrap.offsetWidth||600;
-  const chartH=isMobile?260:(wrap.getBoundingClientRect().height||wrap.offsetHeight||250);
+  const chartH=isMobile?240:(wrap.getBoundingClientRect().height||wrap.offsetHeight||230);
+
   if(lineChart){lineChart.destroy();lineChart=null;}
-  // Lock wrap and canvas with saved dimensions
-  wrap.style.cssText=`flex:1;min-height:0;position:relative;overflow:hidden;`;
+
+  if(isMobile){
+    wrap.style.cssText=`position:relative;overflow:hidden;height:240px;min-height:240px;`;
+  } else {
+    wrap.style.cssText=`flex:1;min-height:0;position:relative;overflow:hidden;`;
+  }
   canvas.style.cssText=`display:block;position:absolute;top:0;left:0;`;
   canvas.width=Math.round(chartW);
   canvas.height=Math.round(chartH);
+
   const ctx=canvas.getContext('2d');
   const grad=ctx.createLinearGradient(0,0,0,chartH);
-  grad.addColorStop(0,gradTop); grad.addColorStop(1,gradBot);
+  grad.addColorStop(0,gradTop);
+  grad.addColorStop(1,gradBot);
   Chart.register(ChartDataLabels);
 
   lineChart=new Chart(ctx,{
@@ -836,7 +857,7 @@ function renderLine(){
       responsive:false,
       maintainAspectRatio:false,
       animation:{duration:400},
-      layout:{padding:{top:32,right:40,left:40,bottom:4}},
+      layout:{padding:{top:32,right:40,left:40,bottom:20}},
       plugins:{
         legend:{display:false},
         tooltip:{backgroundColor:'#1a1d23',titleColor:'#fff',bodyColor:'#9ca3af',padding:10,callbacks:{label:c=>' '+fmtR(c.parsed.y)}},
@@ -864,8 +885,8 @@ function renderLine(){
           ticks:{
             font:{family:"'Plus Jakarta Sans',sans-serif",size:10},
             color:'#9ca3af',
-            // On mobile show every other label to avoid overlap
-            callback:(val,idx)=>window.innerWidth<640&&idx%2!==0?'':labels[idx],
+            // On small mobile skip every other label to avoid overlap
+            callback:(val,idx)=>window.innerWidth<480&&idx%2!==0?'':labels[idx],
             maxRotation:0,
           }
         },
