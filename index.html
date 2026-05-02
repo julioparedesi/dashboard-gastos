@@ -84,44 +84,89 @@ nav::-webkit-scrollbar{display:none;}
 /* DASH GRID */
 .dash-grid{display:grid;grid-template-columns:1fr;gap:16px;max-width:1440px;margin:0 auto;}
 @media(min-width:960px){
-  .dash-grid{
-    grid-template-columns:360px 1fr;
-    gap:20px;
+  .dash-grid{grid-template-columns:350px 1fr;gap:16px;}
+  .col-l{display:flex;flex-direction:column;gap:12px;
+    height:calc(100vh - 58px - 36px);
+    max-height:calc(100vh - 58px - 36px);
+    overflow-y:auto;
+    scrollbar-width:thin;
+    scrollbar-color:var(--bg3) transparent;
   }
-  .col-l{display:flex;flex-direction:column;gap:16px;}
+  .col-l::-webkit-scrollbar{width:4px;}
+  .col-l::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:99px;}
+  .col-l::-webkit-scrollbar-track{background:transparent;}
   .col-r{
-    display:flex;flex-direction:column;gap:16px;
-    /* Lock col-r to exactly the visible area — nothing can push it taller */
+    display:flex;flex-direction:column;gap:12px;
     height:calc(100vh - 58px - 36px);
     max-height:calc(100vh - 58px - 36px);
     overflow:hidden;
   }
-  /* pay card fills remaining height in col-l */
-  .col-l .pay-card-stretch{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
-  .col-l .pay-card-stretch .pay-list{flex:1;overflow:hidden;min-height:0;}
-  /* evo card: fixed, never grows */
-  .col-r .evo-card{flex-shrink:0;overflow:hidden;}
-  /* cat card: fills all remaining height, table scrolls internally */
+  /* pay card: natural height, no stretching */
+  .col-l .pay-card-stretch{flex-shrink:0;display:flex;flex-direction:column;overflow:hidden;}
+  .col-l .pay-card-stretch .pay-list{overflow:hidden;}
+  /* hide mini-top-card on laptop — not enough vertical room */
+  #mini-top-card{display:none;}
+  /* Compact KPI card on laptop */
+  .kpi-card{padding:12px;}
+  .kpi-top{margin-bottom:3px;}
+  .kpi-label{font-size:10px;}
+  .kpi-month-badge{font-size:10px;padding:2px 8px;}
+  .kpi-amount{font-size:28px;letter-spacing:-1px;margin-bottom:8px;}
+  .kpi-prog-wrap{height:5px;margin-bottom:6px;}
+  .kpi-stats{margin-bottom:7px;}
+  .kpi-budget-row{padding:6px 10px;margin-bottom:0;border-radius:8px;}
+  .kpi-bud-lbl{font-size:9px;}
+  .kpi-bud-val{font-size:12px;}
+  /* Hide delta on laptop - saves ~40px */
+  .kpi-delta{display:none;}
+  /* cat-card fills top, evo-card fixed at bottom */
   .col-r .cat-card{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;}
   .col-r .cat-card .card-hd{flex-shrink:0;}
   .col-r .cat-card #catTableWrap{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;}
   .col-r .cat-card #catTableWrap::-webkit-scrollbar{display:none;}
+  .col-r .evo-card{flex-shrink:0;overflow:hidden;height:34vh;min-height:180px;max-height:280px;}
+}
+/* Large desktop 1400px+ */
+@media(min-width:1400px){
+  .dash-grid{grid-template-columns:380px 1fr;gap:20px;}
+  .col-l{gap:16px;}
+  .col-r{gap:16px;}
+  .col-r .evo-card{height:38vh;min-height:200px;max-height:320px;}
+  /* Show mini-top-card on large screens — enough room */
+  #mini-top-card{display:block;}
+  /* Pay card fills remaining space on large screens */
+  .col-l .pay-card-stretch{flex:1;min-height:0;}
+  .col-l .pay-card-stretch .pay-list{flex:1;min-height:0;}
 }
 /* Mobile: reorder cards visually */
 @media(max-width:959px){
   .dash-grid{display:flex;flex-direction:column;gap:12px;}
   .col-l{display:contents;}
   .col-r{display:contents;}
-  /* order: kpi(1) mini(2) → evo chart(3) → cat table(4) → pay(5) */
   .kpi-card        {order:1;}
-  .mini-card       {order:2;}
+  #mini-top-card   {order:2;}
   .evo-card        {order:3;}
   .cat-card        {order:4;}
   .pay-card-stretch{order:5;}
 }
+@media(max-width:640px){
+  #mini-top-card{display:none;}
+  .evo-card{order:2;}
+}
 
 /* CARD */
 .card{background:var(--card);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--sh);padding:20px;}
+@media(min-width:960px) and (max-width:1279px){
+  /* Compact pay items on medium screens */
+  .pay-item{padding:8px 10px;}
+  .pay-amt{font-size:12px;}
+  .pay-name{font-size:12px;}
+  .pay-pct{font-size:10px;}
+  .pay-logo{width:38px;height:22px;}
+  .pay-list{gap:5px;}
+  .card-hd{margin-bottom:10px;}
+  .col-r .evo-card{height:30vh !important;min-height:180px !important;max-height:260px !important;}
+}
 .card-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
 .card-ttl{font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.9px;}
 
@@ -157,15 +202,10 @@ nav::-webkit-scrollbar{display:none;}
 .kpi-delta-amt{font-size:12px;font-weight:600;color:rgba(255,255,255,.45);}
 
 /* MINI CARD */
-.mini-card{background:var(--card);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--sh);padding:16px;}
-.mini-lbl{font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;}
-.mini-val{font-size:24px;font-weight:800;letter-spacing:-.5px;}
-.mini-val.ok{color:var(--ok);}.mini-val.bad{color:var(--danger);}
-.mini-sub{font-size:11px;color:var(--ink3);margin-top:3px;}
 
 /* PAY */
 .pay-list{display:flex;flex-direction:column;gap:6px;flex:1;}
-.pay-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card2);border-radius:var(--r-sm);border:1px solid var(--border);cursor:pointer;transition:all .18s;flex:1;min-height:0;}
+.pay-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card2);border-radius:var(--r-sm);border:1px solid var(--border);cursor:pointer;transition:all .18s;flex:1;min-height:44px;max-height:80px;}
 .pay-item:hover{box-shadow:var(--sh);}
 .pay-item.sel{background:rgba(26,29,35,.06);border-color:rgba(26,29,35,.3);}
 .pay-rank{font-size:11px;font-weight:800;color:var(--ink3);width:12px;flex-shrink:0;}
@@ -178,26 +218,30 @@ nav::-webkit-scrollbar{display:none;}
 .pay-r{text-align:right;flex-shrink:0;}
 .pay-amt{font-size:14px;font-weight:800;}
 .pay-pct{font-size:11px;color:var(--ink3);margin-top:1px;}
+/* Cap pay-card total height so it never over-stretches */
 
-/* CHART — canvas absolute inside fixed evo-card (310px total) */
-.chart-wrap{position:relative;flex:1;min-height:0;overflow:hidden;}
+/* CHART — canvas absolute inside fixed evo-card */
+/* CHART */
+.chart-wrap{position:relative;overflow:hidden;}
 .chart-wrap canvas{position:absolute!important;top:0;left:0;}
-.chart-card-wrap{overflow:hidden;border-radius:var(--r);}
-@media(max-width:640px){.chart-wrap{height:280px;min-height:280px;}}
+/* Mobile: explicit height */
+@media(max-width:959px){.chart-wrap{height:260px;min-height:260px;flex:none;}}
+/* Desktop: fill evo-card */
+@media(min-width:960px){.chart-wrap{flex:1;min-height:0;}}
 
 /* CAT TABLE */
 .cat-reset-btn{font-size:11px;font-weight:700;color:var(--danger);background:rgba(239,68,68,.08);border:none;border-radius:99px;padding:4px 10px;cursor:pointer;display:none;align-items:center;gap:4px;}
 .cat-reset-btn.on{display:inline-flex;}
 /* CAT TABLE — responsive móvil */
-.cat-tbl{width:100%;border-collapse:collapse;table-layout:fixed;}
-.cat-tbl th{font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.6px;padding:0 6px 8px 6px;text-align:right;border-bottom:1px solid var(--border2);white-space:nowrap;}
-.cat-tbl th:first-child{text-align:left;padding-left:6px;width:22%;}
+.cat-tbl{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;}
+.cat-tbl th{font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.6px;padding:0 6px 8px 6px;text-align:center;border-bottom:1px solid var(--border2);white-space:nowrap;position:sticky;top:0;z-index:3;background:var(--card);}
+.cat-tbl th:first-child{text-align:left;padding-left:6px;width:30%;}
 .cat-tbl th:nth-child(2){width:14%;}
 .cat-tbl th:nth-child(3){width:14%;}
-.cat-tbl th:nth-child(4){width:16%;}
-.cat-tbl th:nth-child(5){width:10%;}
-.cat-tbl th:nth-child(6){width:24%;}
-.cat-tbl td{padding:7px 6px;border-bottom:1px solid var(--border);vertical-align:middle;text-align:right;}
+.cat-tbl th:nth-child(4){width:14%;}
+.cat-tbl th:nth-child(5){width:14%;}
+.cat-tbl th:nth-child(6){width:14%;}
+.cat-tbl td{padding:7px 6px;border-bottom:1px solid var(--border);vertical-align:middle;text-align:center;}
 .cat-tbl td:first-child{padding-left:6px;text-align:left;}
 .cat-tbl tr:last-child td{border-bottom:none;}
 .cat-tbl tbody tr{cursor:pointer;transition:background .15s;border-radius:var(--r-sm);}
@@ -425,16 +469,19 @@ nav::-webkit-scrollbar{display:none;}
         </div>
       </div>
 
-      <div style="order:2;display:flex;flex-direction:column;gap:10px;">
-        <div class="mini-card">
-          <div class="mini-lbl">Restante / Excedido</div>
-          <div class="mini-val" id="mini-rest">S/ 0</div>
-          <div class="mini-sub" id="mini-rest-sub">del presupuesto</div>
-        </div>
-        <div class="mini-card">
-          <div class="mini-lbl">Mayor categoría del mes</div>
-          <div class="mini-val" id="mini-topcat" style="font-size:15px;letter-spacing:0;font-weight:800">—</div>
-          <div class="mini-sub" id="mini-topcat-amt"></div>
+
+
+
+      <!-- Mini KPI: categoría con mayor % de uso -->
+      <div class="card" id="mini-top-card" style="order:2;flex-shrink:0;padding:14px 16px;">
+        <div class="card-ttl" style="margin-bottom:10px;">Mayor uso del budget</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div id="mini-top-icon" style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;background:var(--bg3);">—</div>
+          <div style="flex:1;min-width:0;">
+            <div id="mini-top-name" style="font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</div>
+            <div id="mini-top-sub" style="font-size:11px;color:var(--ink3);margin-top:2px;">—</div>
+          </div>
+          <div id="mini-top-pill"></div>
         </div>
       </div>
 
@@ -445,21 +492,21 @@ nav::-webkit-scrollbar{display:none;}
     </div>
 
     <div class="col-r">
-      <!-- Gráfico unificado: evolutivo general o por filtro -->
-      <div class="card evo-card" style="order:3;overflow:hidden;flex-shrink:0;height:310px;min-height:310px;max-height:310px;display:flex;flex-direction:column;">
-        <div class="card-hd" style="flex-shrink:0;min-height:36px;align-items:center;">
-          <div class="card-ttl" id="evo-title" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:70%;">Evolución mensual</div>
-          <button class="cat-reset-btn" id="evoResetBtn" onclick="resetFilters()">✕ Quitar filtro</button>
-        </div>
-        <div class="chart-wrap" style="flex:1;min-height:0;"><canvas id="lineChart"></canvas></div>
-      </div>
-
-      <!-- Tabla categorías -->
+      <!-- Tabla categorías — PRIMERO -->
       <div class="card cat-card" style="order:4;padding:16px 16px">
         <div class="card-hd">
           <div class="card-ttl">Por categoría</div>
         </div>
         <div id="catTableWrap"><div class="empty"><span class="ei">⏳</span>Cargando…</div></div>
+      </div>
+
+      <!-- Gráfico evolutivo — ABAJO -->
+      <div class="card evo-card" style="order:3;overflow:hidden;flex-shrink:0;display:flex;flex-direction:column;" id="evoCard">
+        <div class="card-hd" style="flex-shrink:0;min-height:36px;align-items:center;">
+          <div class="card-ttl" id="evo-title" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:70%;">Evolución mensual</div>
+          <button class="cat-reset-btn" id="evoResetBtn" onclick="resetFilters()">✕ Quitar filtro</button>
+        </div>
+        <div class="chart-wrap"><canvas id="lineChart"></canvas></div>
       </div>
     </div>
   </div>
@@ -716,21 +763,6 @@ function renderKPI(){
   document.getElementById('kpi-rest-val').textContent=fmtR(Math.abs(rest));
   document.getElementById('kpi-rest-val').className='kpi-bud-val '+(rest>=0?'ok':'bad');
 
-  document.getElementById('mini-rest').textContent=fmtR(Math.abs(rest));
-  document.getElementById('mini-rest').className='mini-val '+(rest>=0?'ok':'bad');
-  document.getElementById('mini-rest-sub').textContent=rest>=0?'disponible del presupuesto':'excedido del presupuesto';
-
-  // Top category mini card
-  const catMap2={};
-  gastos.forEach(r=>{const c=r.categoria||'Sin categoría';catMap2[c]=(catMap2[c]||0)+montoFinal(r);});
-  const topCat=Object.entries(catMap2).sort((a,b)=>b[1]-a[1])[0];
-  const tcEl=document.getElementById('mini-topcat');
-  const tcAmt=document.getElementById('mini-topcat-amt');
-  if(tcEl){
-    tcEl.textContent=topCat?`${catMeta(topCat[0]).i} ${topCat[0]}`:'—';
-    if(tcAmt) tcAmt.textContent=topCat?fmtR(topCat[1])+' gastado':'';
-  }
-
   const months=[...new Set(allGastos.map(r=>r._yyyymm))].sort();
   const idx=months.indexOf(selectedMonth);
   const ps=document.getElementById('kpi-delta-pct'),as=document.getElementById('kpi-delta-amt');
@@ -775,12 +807,11 @@ function renderLine(){
   }
 
   const maxVal=Math.max(...data),minVal=Math.min(...data);
-  const isMobile=window.innerWidth<640;
+  const isMobile=window.innerWidth<960;
   const canvas=document.getElementById('lineChart');
   const wrap=canvas.parentElement;
-  // READ width/height BEFORE destroying (destroy collapses canvas to 0)
   const chartW=wrap.getBoundingClientRect().width||wrap.offsetWidth||600;
-  const chartH=isMobile?190:(wrap.getBoundingClientRect().height||wrap.offsetHeight||250);
+  const chartH=isMobile?260:(wrap.getBoundingClientRect().height||wrap.offsetHeight||250);
   if(lineChart){lineChart.destroy();lineChart=null;}
   // Lock wrap and canvas with saved dimensions
   wrap.style.cssText=`flex:1;min-height:0;position:relative;overflow:hidden;`;
@@ -870,6 +901,22 @@ function renderCats(){
   const rows=Object.entries(catMap).sort((a,b)=>b[1]-a[1]);
   const wrap=document.getElementById('catTableWrap');
   if(!rows.length&&!Object.keys(budMap).length){wrap.innerHTML='<div class="empty"><span class="ei">📭</span>Sin datos</div>';return;}
+
+  // Mini top-usage card
+  const withBud=Object.entries(catMap).filter(([c])=>budMap[c]>0).map(([c,s])=>({cat:c,spent:s,pct:s/budMap[c]*100}));
+  const topU=withBud.sort((a,b)=>b.pct-a.pct)[0];
+  const el_i=document.getElementById('mini-top-icon');
+  const el_n=document.getElementById('mini-top-name');
+  const el_s=document.getElementById('mini-top-sub');
+  const el_p=document.getElementById('mini-top-pill');
+  if(el_i&&topU){
+    const m=catMeta(topU.cat);
+    const cls=topU.pct>=100?'over':topU.pct>=80?'warn':'ok';
+    el_i.textContent=m.i; el_i.style.background=m.bg;
+    el_n.textContent=topU.cat;
+    el_s.textContent=fmtR(topU.spent)+' de '+fmtR(budMap[topU.cat]);
+    el_p.innerHTML=`<span class="pill ${cls}">${Math.round(topU.pct)}%</span>`;
+  }
 
   const isCatActive=activeFilter?.type==='cat';
 
@@ -1193,7 +1240,7 @@ function renderVisa(){
 
   const total=gastos.reduce((s,r)=>s+(parseFloat(r.monto)||0),0);
   document.getElementById('visa-total').textContent=fmt(total);
-  document.getElementById('visa-sub').textContent=`${gastos.length} transacción${gastos.length!==1?'es':''}`;
+  document.getElementById('visa-sub').textContent=`${gastos.length} ${gastos.length!==1?'transacciones':'transacción'}`;
   const montos=gastos.map(r=>parseFloat(r.monto)||0);
   document.getElementById('visa-max').textContent=montos.length?fmt(Math.max(...montos)):'S/ 0';
   document.getElementById('visa-avg').textContent=gastos.length?fmt(total/gastos.length):'S/ 0';
